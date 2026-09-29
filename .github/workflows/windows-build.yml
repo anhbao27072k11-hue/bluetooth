@@ -1,0 +1,126 @@
+# language: YAML, file: .github/workflows/windows-build.yml
+# *CI — build & test bluetooth_signal_tool natively on Windows 11 x64*
+#
+# This workflow:
+#   1. Checks out the repo (including the libhackrf submodule).
+#   2. Installs libusb via vcpkg (libhackrf's Windows dependency).
+#   3. Builds + installs libhackrf from source into a prefix.
+#   4. Configures this project with -DHACKRF_ROOT pointing at that prefix.
+#   5. Builds the Release .exe.
+#   6. Runs the unit tests via ctest.
+#
+# No WSL, no MSYS2, no liquid-dsp. Matches the README "Windows Build" steps.
+name: windows-build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:   # allow manual trigger from the Actions tab
+
+jobs:
+  build-windows:
+    runs-on: windows-2022   # Windows Server 2022 (x64), has VS2022 + CMake preinstalled
+
+    steps:
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install libusb via vcpkg (libhackrf dependency)
+        shell: pwsh
+        run: |
+          # windows-2022 ships vcpkg. libhackrf REQUIRES libusb on Windows.
+          $vcpkg = "$env:VCPKG_INSTALLATION_ROOT"
+          if (-not $vcpkg) { $vcpkg = "C:\vcpkg" }
+          & "$vcpkg\vcpkg.exe" install libusb:x64-windows
+          Write-Host "VCPKG_ROOT=$vcpkg"
+
+      - name: Build and install libhackrf from source
+        shell: pwsh
+        run: |
+          # libhackrf has a native CMake build under host/. Build it, then
+          # INSTALL it into a prefix so the header lands at
+          # <prefix>/include/libhackrf/hackrf.h (matching #include <libhackrf/hackrf.h>)
+          # and the library at <prefix>/lib/hackrf.lib.
+          $vcpkg = "$env:VCPKG_INSTALLATION_ROOT"
+          if (-not $vcpkg) { $vcpkg = "C:\vcpkg" }
+          cmake -B hackrf-build -S third_party/libhackrf/host `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_INSTALL_PREFIX="$env:GITHUB_WORKSPACE/hackrf-install" `
+            -DCMAKE_TOOLCHAIN_FILE="$vcpkg/scripts/buildsystems/vcpkg.cmake"
+          cmake --build hackrf-build --config Release
+          cmake --install hackrf-build --config Release
+
+      - name: Stage runtime DLLs next to the exe
+        shell: pwsh
+        run: |
+          # Copy the libusb DLL from vcpkg into hackrf-install/bin so the
+          # artifact bundles every DLL the exe needs at runtime.
+          $vcpkg = "$env:VCPKG_INSTALLATION_ROOT"
+          if (-not $vcpkg) { $vcpkg = "C:\vcpkg" }
+          $libusb = "$vcpkg\installed\x64-windows\bin\libusb-1.0.dll"
+          if (Test-Path $libusb) {
+            Copy-Item $libusb hackrf-install/bin/ -Force
+            Write-Host "Copied libusb-1.0.dll to hackrf-install/bin/"
+          } else {
+            Write-Host "WARNING: libusb-1.0.dll not found at $libusb"
+          }
+
+      - name: Configure bluetooth_signal_tool
+        shell: pwsh
+        run: |
+          # HACKRF_ROOT points at the installed libhackrf prefix, which has
+          # include/libhackrf/hackrf.h and lib/hackrf.lib.
+          cmake -B build `
+            -DUSE_HACKRF=ON `
+            -DHACKRF_ROOT="$env:GITHUB_WORKSPACE/hackrf-install" `
+            -DBUILD_TESTS=ON `
+            -G "Visual Studio 17 2022" `
+            -A x64
+
+      - name: Build (Release)
+        shell: pwsh
+        run: |
+          cmake --build build --config Release
+
+      - name: Run unit tests (ctest)
+        shell: pwsh
+        run: |
+          ctest --test-dir build -C Release --output-on-failure
+
+      - name: Verify the .exe exists
+        shell: pwsh
+        run: |
+          Get-ChildItem build/Release/bluetooth_signal_tool.exe | Select-Object FullName, Length
+
+      - name: List build output and DLLs
+        shell: pwsh
+        run: |
+          Write-Host "===== build/Release/ ====="
+          Get-ChildItem build/Release/ | Select-Object Name, Length
+          Write-Host ""
+          Write-Host "===== hackrf-install/bin/ ====="
+          if (Test-Path hackrf-install/bin) {
+            Get-ChildItem hackrf-install/bin | Select-Object Name, Length
+          } else {
+            Write-Host "(hackrf-install/bin not found)"
+          }
+
+      - name: Upload build artifacts
+        if: always()   # upload even if tests failed, so the output can be inspected
+        uses: actions/upload-artifact@v4
+        with:
+          name: bluetooth_signal_tool-windows-x64
+          path: |
+            build/Release/bluetooth_signal_tool.exe
+            build/Release/*.pdb
+            hackrf-install/bin/hackrf.dll
+            hackrf-install/bin/libusb-1.0.dll
+          if-no-files-found: warn   # don't fail if e.g. the .pdb is absent
+          retention-days: 30

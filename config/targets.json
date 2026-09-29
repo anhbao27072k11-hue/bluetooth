@@ -1,0 +1,7 @@
+{
+  "mac_filter": [],
+  "rssi_threshold_dbm": -80,
+  "focus_targets": [],
+  "scan_dwell_ms": 100,
+  "classic_dwell_ms": 2
+}

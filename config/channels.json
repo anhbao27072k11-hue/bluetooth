@@ -1,0 +1,27 @@
+{
+  "ble": {
+    "channels": 40,
+    "spacing_mhz": 2,
+    "start_mhz": 2402,
+    "adv_channels": [37, 38, 39],
+    "adv_freqs_mhz": [2402, 2426, 2480],
+    "modulation": "GFSK",
+    "symbol_rate_msps": 1.0,
+    "preamble": "0xAA",
+    "access_address": "0x8E89BED6"
+  },
+  "classic": {
+    "channels": 79,
+    "spacing_mhz": 1,
+    "start_mhz": 2402,
+    "modulation": "GFSK",
+    "symbol_rate_msps": 1.0,
+    "hop": "adaptive_frequency_hopping"
+  },
+  "jammer": {
+    "default_mode": "noise",
+    "noise_bandwidth_mhz": 2,
+    "amplitude": 0.8,
+    "dwell_ms": 2
+  }
+}
