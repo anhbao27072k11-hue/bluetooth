@@ -1,11 +1,3 @@
 [submodule "third_party/libhackrf"]
 	path = third_party/libhackrf
 	url = https://github.com/greatscottgadgets/hackrf.git
-
-[submodule "third_party/libbladerf"]
-	path = third_party/libbladerf
-	url = https://github.com/Nuand/bladeRF.git
-
-[submodule "third_party/liquid-dsp"]
-	path = third_party/liquid-dsp
-	url = https://github.com/jgaeddert/liquid-dsp.git
