@@ -1,5 +1,6 @@
 // language: C++, file: test_gfsk_demod.cpp, target: Linux, GCC/Clang
 // *Unit test — feed synthetic GFSK-modulated bits, assert demod recovers them*
+#define _USE_MATH_DEFINES   // MSVC: expose M_PI etc. from <cmath>
 #include "gfsk_demod.h"
 
 #include <cstdio>
@@ -7,6 +8,8 @@
 #include <complex>
 #include <random>
 #include <vector>
+
+using namespace bst;
 
 static int g_fail = 0;
 #define CHECK(cond) do { if (!(cond)) { \

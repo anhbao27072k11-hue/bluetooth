@@ -10,6 +10,8 @@
 #include <cstdio>
 #include <cstring>
 
+using namespace bst;
+
 static int g_fail = 0;
 #define CHECK(cond) do { if (!(cond)) { \
     std::printf("FAIL %s:%d: %s\n", __FILE__, __LINE__, #cond); g_fail++; } } while (0)

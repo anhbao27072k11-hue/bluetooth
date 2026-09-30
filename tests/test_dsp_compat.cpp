@@ -7,6 +7,7 @@
 //   3. The filter actually lowpass-filters: a DC signal passes, a high-frequency
 //      signal (above cutoff) is attenuated.
 //   4. bessel_i0 matches known reference values.
+#define _USE_MATH_DEFINES   // MSVC: expose M_PI etc. from <cmath>
 #include "dsp_compat.h"
 
 #include <cstdio>

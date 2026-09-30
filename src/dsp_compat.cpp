@@ -1,5 +1,6 @@
 // language: C++, file: dsp_compat.cpp, target: Windows/Linux, MSVC/MinGW/GCC
 // *Self-contained DSP replacements — see dsp_compat.h for the math docs*
+#define _USE_MATH_DEFINES   // MSVC: expose M_PI etc. from <cmath>
 #include "dsp_compat.h"
 
 #include <cmath>

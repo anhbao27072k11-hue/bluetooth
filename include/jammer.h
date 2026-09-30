@@ -38,11 +38,12 @@ public:
 
     void stop();
 
-private:
     // Generate one burst of samples for the given mode/bandwidth.
+    // Exposed publicly so tests can validate the waveform synthesis directly.
     static SampleBuffer synthesize(const JamConfig& cfg, double center_hz,
                                    double sample_rate, size_t n);
 
+private:
     SdrDevice& dev_;
     std::atomic<bool> running_{false};
 };

@@ -1,4 +1,5 @@
 // language: C++, file: jammer.cpp, target: Linux, GCC/Clang
+#define _USE_MATH_DEFINES   // MSVC: expose M_PI etc. from <cmath>
 #include "jammer.h"
 #include "platform.h"
 #include "utils.h"
@@ -44,7 +45,7 @@ SampleBuffer Jammer::synthesize(const JamConfig& cfg, double center_hz,
                 break;
             }
         }
-        out.push_back(s * cfg.amplitude);
+        out.push_back(s * static_cast<float>(cfg.amplitude));
         t += dt;
     }
     return out;
