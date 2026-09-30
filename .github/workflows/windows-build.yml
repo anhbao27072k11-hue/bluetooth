@@ -32,13 +32,15 @@ jobs:
       - name: Set up MSVC environment
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install libusb via vcpkg (libhackrf dependency)
+      - name: Install libusb + pthreads via vcpkg (libhackrf dependencies)
         shell: pwsh
         run: |
-          # windows-2022 ships vcpkg. libhackrf REQUIRES libusb on Windows.
+          # windows-2022 ships vcpkg. libhackrf REQUIRES libusb on Windows, and
+          # its hackrf.c does #include <pthread.h>, so it also needs
+          # pthreads4w (vcpkg port "pthreads") to provide pthread.h.
           $vcpkg = "$env:VCPKG_INSTALLATION_ROOT"
           if (-not $vcpkg) { $vcpkg = "C:\vcpkg" }
-          & "$vcpkg\vcpkg.exe" install libusb:x64-windows
+          & "$vcpkg\vcpkg.exe" install libusb:x64-windows pthreads:x64-windows
           Write-Host "VCPKG_ROOT=$vcpkg"
 
       - name: Build and install libhackrf from source
