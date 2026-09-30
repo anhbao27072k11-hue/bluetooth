@@ -156,7 +156,7 @@ if(BUILD_TESTS)
   target_link_libraries(test_dsp_compat PRIVATE Threads::Threads)
   add_test(NAME test_dsp_compat COMMAND test_dsp_compat)
 
-  add_executable(test_ble_decoder tests/test_ble_decoder.cpp src/ble_decoder.cpp)
+  add_executable(test_ble_decoder tests/test_ble_decoder.cpp src/ble_decoder.cpp src/utils.cpp)
   target_include_directories(test_ble_decoder PRIVATE include)
   target_link_libraries(test_ble_decoder PRIVATE Threads::Threads)
   add_test(NAME test_ble_decoder COMMAND test_ble_decoder)

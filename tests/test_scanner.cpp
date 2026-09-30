@@ -59,7 +59,7 @@ static void test_ble_decode() {
 
 static void test_ble_decode_name() {
     // ADV_IND with complete local name "Test"
-    uint8_t pdu[13] = { 0x00, 0x0B, // type 0, len 11
+    uint8_t pdu[14] = { 0x00, 0x0C, // type 0, len 12
                         0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, // advA
                         0x05, 0x09, 'T', 'e', 's', 't' };   // name
     auto bits = build_adv_bits(pdu, sizeof(pdu), 38);
